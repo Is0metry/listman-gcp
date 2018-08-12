@@ -1,0 +1,19 @@
+<head>
+    <title>{{.Name}}</title>
+</head>
+<body>
+    {{if .Parent}}
+    <a href="/view/{{.Parent}}">Back</a>
+    {{end}}
+    {{if .Name}}
+    <h1>{{.Name}}</h1>
+    {{end}}
+    <ul>
+    {{range .Items}}
+    <li><a href="/view/{{.Key}}">{{.ItemText}}</a> &nbsp; <a href="/delete/{{.Key}}">delete</a></li>
+    {{end}}
+    <form action="/add/{{$.Key}}" method="POST">
+        <input name="newItem" type=text>
+        <button type="submit">Add Item</button>
+    </form>
+</body>
