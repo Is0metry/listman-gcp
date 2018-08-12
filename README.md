@@ -10,3 +10,4 @@ A version of listman built to run in the GCP App Engine.
 # TODO
 * Move datastore calls into Transactions.
 * Multi-user support.
+* Option to run as JSON backend.
