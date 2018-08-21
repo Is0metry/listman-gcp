@@ -11,4 +11,4 @@ A version of listman built to run in the GCP App Engine.
 * Move datastore calls into Transactions.
 * Multi-user support.
 * Option to run as JSON backend.
-* `aetest` integration.
+* Test suite. Learn how the heck `aetest` works.
