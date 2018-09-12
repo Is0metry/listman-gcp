@@ -3,12 +3,17 @@ package lists
 import (
 	"context"
 	"errors"
-	"log"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 
 	"google.golang.org/appengine/datastore"
+)
+
+var (
+	//ErrEmptyItem is returned if AddList recieves an empty string as an argument
+	ErrEmptyItem = errors.New("error! item is empty")
 )
 
 //GetList loads a list from the datastore, filtering out all but the immediate children of the parent key.
@@ -16,7 +21,6 @@ func GetList(ctx context.Context, key *datastore.Key) (*List, error) {
 	lst := new(List)
 	var parent = new(Item)
 	//Gets the parent node for its name and parent key.
-	log.Println("Getting Parent")
 	if err := datastore.Get(ctx, key, parent); err != nil {
 		return nil, err
 	}
@@ -34,6 +38,7 @@ func GetList(ctx context.Context, key *datastore.Key) (*List, error) {
 	q := datastore.NewQuery("Item").Ancestor(key).KeysOnly()
 	for i := q.Run(ctx); ; {
 		k, err := i.Next(nil)
+
 		if err == datastore.Done {
 			break
 		} else if err != nil {
@@ -77,12 +82,14 @@ func GetRoot(ctx context.Context) (string, error) {
 
 //AddItem adds an item with context of text to datastore.
 func AddItem(ctx context.Context, text string, parent *datastore.Key) error {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ErrEmptyItem
+	}
 	key := datastore.NewIncompleteKey(ctx, "Item", parent)
 	item := &Item{ItemText: text, TimeAdded: time.Now()}
-	if _, err := datastore.Put(ctx, key, item); err != nil {
-		return err
-	}
-	return nil
+	_, err := datastore.Put(ctx, key, item)
+	return err
 }
 
 //DeleteItem deletes an item and all of its descendents
