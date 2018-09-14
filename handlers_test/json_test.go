@@ -62,7 +62,7 @@ func TestJSONViewHandler(t *testing.T) {
 func TestJSONAddHandler(t *testing.T) {
 	ctx, done, err := aetest.NewContext()
 	if err != nil {
-		t.Error("Error getting context from aetest")
+		t.Error("Error getting context from aetest")8
 		t.FailNow()
 	}
 	defer done()
