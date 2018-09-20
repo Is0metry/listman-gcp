@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/is0metry/listman-gcp/lists"
+	"github.com/Is0metry/listman-gcp/lists"
 )
 
 type OperationRequest struct {

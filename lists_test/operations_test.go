@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Is0metry/listman-gcp/lists"
+	"github.com/Is0metry/listman-gcp/testhelp"
 	"github.com/icrowley/fake"
-	"github.com/is0metry/listman-gcp/lists"
-	"github.com/is0metry/listman-gcp/testhelp"
 	"google.golang.org/appengine/aetest"
 	"google.golang.org/appengine/datastore"
 )

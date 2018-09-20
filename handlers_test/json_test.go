@@ -62,15 +62,15 @@ func TestJSONViewHandler(t *testing.T) {
 func TestJSONAddHandler(t *testing.T) {
 	ctx, done, err := aetest.NewContext()
 	if err != nil {
-		t.Error("Error getting context from aetest")8
+		t.Error("Error getting context from aetest")
 		t.FailNow()
 	}
 	defer done()
 	rootKey, _ := initializeTestDatastore(ctx)
 	reqBody, err := json.Marshal(handlers.OperationRequest{ReqType: "add", Text: "This is a test."})
-	t.Log(reqBody)
+	t.Log(string(reqBody))
 	bodyReader := bytes.NewReader(reqBody)
-	r := httptest.NewRequest("GET", "/add/"+rootKey.Encode(), bodyReader)
+	r := httptest.NewRequest("POST", "/add/"+rootKey.Encode(), bodyReader)
 	w := httptest.NewRecorder()
 	handlers.JSONAddHandler(ctx, w, r)
 	var resp handlers.ListResponse
@@ -83,5 +83,51 @@ func TestJSONAddHandler(t *testing.T) {
 		t.Errorf("Response unsuccessful with message %s.", resp.ErrorText)
 		t.Log(w.Body.String())
 
+	}
+	if len(resp.Lst.Items) != 1 {
+		t.Errorf("Lst is wrong length! expected 1, got %d", len(resp.Lst.Items))
+		t.FailNow()
+	}
+	if resp.Lst.Items[0].ItemText != "This is a test." {
+		t.Errorf("Text wrong, expected \"this is a test.\" got \"%s\" instead.", resp.Lst.Items[0].ItemText)
+
+	}
+}
+func TestJSONDeleteHandler(t *testing.T) {
+	ctx, done, err := aetest.NewContext()
+	if err != nil {
+		t.Errorf("Unexpected error with aetest: %s", err.Error())
+	}
+	defer done()
+	rootKey, err := initializeTestDatastore(ctx)
+	if err != nil {
+		t.Errorf("Unexpected error initializing datastore: %s", err.Error())
+	}
+	key := datastore.NewIncompleteKey(ctx, "Item", rootKey)
+	key, err = datastore.Put(ctx, key, &lists.Item{ItemText: "to be deleted.", TimeAdded: time.Now()})
+	if err != nil {
+		t.Errorf("Unexpected error adding item: %s", err.Error())
+	}
+	req := &handlers.OperationRequest{ReqType: "delete", Text: key.Encode()}
+	reqString, _ := json.Marshal(req)
+	reqBody := bytes.NewReader(reqString)
+	r := httptest.NewRequest("POST", "/delete", reqBody)
+	w := httptest.NewRecorder()
+	handlers.JSONDeleteHandler(ctx, w, r)
+	if w.Code != 200 {
+		t.Errorf("Wrong code! expected 200 got %d", w.Code)
+		t.FailNow()
+	}
+	dec := json.NewDecoder(w.Body)
+	var resp handlers.ListResponse
+	if err := dec.Decode(&resp); err != nil {
+		t.Errorf("error decoding json: %s", err.Error())
+		t.FailNow()
+	}
+	if !resp.GetSuccessful {
+		t.Errorf("Get unsuccessful: %s", resp.ErrorText)
+	}
+	if resp.Lst.Key != rootKey.Encode() {
+		t.Errorf("Expected root key back, got %s instead", resp.Lst.Name)
 	}
 }
