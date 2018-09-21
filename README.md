@@ -14,4 +14,4 @@ Your front end should send JSON requests (see `handlers/jsontype.go` for `Operat
 # TODO
 * Move datastore calls into Transactions.
 * Multi-user support.
-* Enable use of 
+* Enable use of template-based webapp.
