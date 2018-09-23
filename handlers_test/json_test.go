@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/is0metry/listman-gcp/handlers"
-	"github.com/is0metry/listman-gcp/lists"
+	"github.com/Is0metry/listman-gcp/handlers"
+	"github.com/Is0metry/listman-gcp/lists"
 
 	"google.golang.org/appengine/aetest"
 	"google.golang.org/appengine/datastore"
