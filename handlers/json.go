@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/Is0metry/listman-gcp/lists"
@@ -13,10 +14,16 @@ import (
 func jsonReturnError(w http.ResponseWriter, r *http.Request, err error) {
 	enc := json.NewEncoder(w)
 	w.WriteHeader(500)
-	resp := ListResponse{GetSuccessful: false, ErrorText: err.Error()}
-	enc.Encode(&resp)
+	resp := OperationResponse{Success: false, ErrorText: err.Error()}
+	enc.Encode(resp)
+}
+func jsonReturnSuccess(w http.ResponseWriter, r *http.Request) {
+	enc := json.NewEncoder(w)
+	resp := OperationResponse{Success: true, ErrorText: ""}
+	enc.Encode(resp)
 }
 
+//JSONViewHandler returns the list specified in the request body.
 func JSONViewHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	keytxt := r.URL.Path[len("/view/"):]
 	key, err := datastore.DecodeKey(keytxt)
@@ -39,6 +46,7 @@ func JSONViewHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 	enc.Encode(resp)
 }
 
+//JSONAddHandler adds a new list item from the OperationRequest in the request body to the list specified by the key in the URL.
 func JSONAddHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	keytxt := r.URL.Path[len("/add/"):]
 	key, err := datastore.DecodeKey(keytxt)
@@ -52,17 +60,17 @@ func JSONAddHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 			jsonReturnError(w, r, err)
 			return
 		}
-		if req.ReqType == "add" {
-			if err := lists.AddItem(ctx, req.Text, key); err != nil {
-				jsonReturnError(w, r, err)
-				return
-			}
+		if err := lists.AddItem(ctx, req.Text, key); err != nil {
+			jsonReturnError(w, r, err)
+			return
 		}
+		jsonReturnSuccess(w, r)
+	} else {
+		jsonReturnError(w, r, errors.New("request not of type POST"))
 	}
-	r.URL.Path = "/view/" + keytxt
-	JSONViewHandler(ctx, w, r)
 }
 
+//JSONDeleteHandler deletes an item specified by the key in the OperationRequest in the request body and returns an OperationResponse.
 func JSONDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		dec := json.NewDecoder(r.Body)
@@ -75,13 +83,12 @@ func JSONDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 			jsonReturnError(w, r, err)
 			return
 		}
-		parKey, err := lists.DeleteItem(ctx, key)
+		_, err = lists.DeleteItem(ctx, key)
 		if err != nil {
 			jsonReturnError(w, r, err)
 			return
 		}
-		r.URL.Path = "/view/" + parKey
-		JSONViewHandler(ctx, w, r)
+		jsonReturnSuccess(w, r)
 
 	}
 }
