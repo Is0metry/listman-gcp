@@ -57,29 +57,21 @@ func TestJSONAddHandler(t *testing.T) {
 	}
 	defer done()
 	rootKey, _ := testhelp.InitializeTestDatastore(ctx)
-	reqBody, err := json.Marshal(handlers.OperationRequest{ReqType: "add", Text: "This is a test."})
+	reqBody, err := json.Marshal(handlers.OperationRequest{Text: "This is a test."})
 	t.Log(string(reqBody))
 	bodyReader := bytes.NewReader(reqBody)
 	r := httptest.NewRequest("POST", "/add/"+rootKey.Encode(), bodyReader)
 	w := httptest.NewRecorder()
 	handlers.JSONAddHandler(ctx, w, r)
-	var resp handlers.ListResponse
+	var resp handlers.OperationResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Errorf("Error unmarshalling json with error %s.", err.Error())
 		t.Log(w.Body.String())
 		t.FailNow()
 	}
-	if !resp.GetSuccessful {
+	if !resp.Success {
 		t.Errorf("Response unsuccessful with message %s.", resp.ErrorText)
 		t.Log(w.Body.String())
-
-	}
-	if len(resp.Lst.Items) != 1 {
-		t.Errorf("Lst is wrong length! expected 1, got %d", len(resp.Lst.Items))
-		t.FailNow()
-	}
-	if resp.Lst.Items[0].ItemText != "This is a test." {
-		t.Errorf("Text wrong, expected \"this is a test.\" got \"%s\" instead.", resp.Lst.Items[0].ItemText)
 
 	}
 }
@@ -98,7 +90,7 @@ func TestJSONDeleteHandler(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error adding item: %s", err.Error())
 	}
-	req := &handlers.OperationRequest{ReqType: "delete", Text: key.Encode()}
+	req := &handlers.OperationRequest{Text: key.Encode()}
 	reqString, _ := json.Marshal(req)
 	reqBody := bytes.NewReader(reqString)
 	r := httptest.NewRequest("POST", "/delete", reqBody)
@@ -109,15 +101,12 @@ func TestJSONDeleteHandler(t *testing.T) {
 		t.FailNow()
 	}
 	dec := json.NewDecoder(w.Body)
-	var resp handlers.ListResponse
+	var resp handlers.OperationResponse
 	if err := dec.Decode(&resp); err != nil {
 		t.Errorf("error decoding json: %s", err.Error())
 		t.FailNow()
 	}
-	if !resp.GetSuccessful {
+	if !resp.Success {
 		t.Errorf("Get unsuccessful: %s", resp.ErrorText)
-	}
-	if resp.Lst.Key != rootKey.Encode() {
-		t.Errorf("Expected root key back, got %s instead", resp.Lst.Name)
 	}
 }
