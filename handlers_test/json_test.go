@@ -2,7 +2,6 @@ package handlers_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -11,20 +10,11 @@ import (
 
 	"github.com/Is0metry/listman-gcp/handlers"
 	"github.com/Is0metry/listman-gcp/lists"
+	"github.com/Is0metry/listman-gcp/testhelp"
 
 	"google.golang.org/appengine/aetest"
 	"google.golang.org/appengine/datastore"
 )
-
-func initializeTestDatastore(ctx context.Context) (*datastore.Key, error) {
-	rootKey := datastore.NewKey(ctx, "Item", "root", 0, nil)
-	root := &lists.Item{ItemText: "root", TimeAdded: time.Now()}
-	rootKey, err := datastore.Put(ctx, rootKey, root)
-	if err != nil {
-		return nil, err
-	}
-	return rootKey, nil
-}
 
 func TestJSONViewHandler(t *testing.T) {
 	ctx, done, err := aetest.NewContext()
@@ -33,7 +23,7 @@ func TestJSONViewHandler(t *testing.T) {
 		t.FailNow()
 	}
 	defer done()
-	rootKey, err := initializeTestDatastore(ctx)
+	rootKey, err := testhelp.InitializeTestDatastore(ctx)
 	if err := lists.AddItem(ctx, "this is a test item", rootKey); err != nil {
 		t.Error("Error adding item to database")
 		t.FailNow()
@@ -66,7 +56,7 @@ func TestJSONAddHandler(t *testing.T) {
 		t.FailNow()
 	}
 	defer done()
-	rootKey, _ := initializeTestDatastore(ctx)
+	rootKey, _ := testhelp.InitializeTestDatastore(ctx)
 	reqBody, err := json.Marshal(handlers.OperationRequest{ReqType: "add", Text: "This is a test."})
 	t.Log(string(reqBody))
 	bodyReader := bytes.NewReader(reqBody)
@@ -99,7 +89,7 @@ func TestJSONDeleteHandler(t *testing.T) {
 		t.Errorf("Unexpected error with aetest: %s", err.Error())
 	}
 	defer done()
-	rootKey, err := initializeTestDatastore(ctx)
+	rootKey, err := testhelp.InitializeTestDatastore(ctx)
 	if err != nil {
 		t.Errorf("Unexpected error initializing datastore: %s", err.Error())
 	}

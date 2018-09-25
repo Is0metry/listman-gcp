@@ -11,7 +11,7 @@ import (
 func main() {
 	http.Handle("/", handlers.ContextHandler{handlers.RootHandler})
 	http.Handle("/view/", handlers.ContextHandler{handlers.JSONViewHandler})
-	http.Handle("/add/", handlers.ContextHandler{handlers.JSONAddHandler})
-	http.Handle("/delete", handlers.ContextHandler{handlers.JSONDeleteHandler})
+	http.Handle("/add/", handlers.BackgroundHandler{handlers.JSONAddHandler})
+	http.Handle("/delete", handlers.BackgroundHandler{handlers.JSONDeleteHandler})
 	appengine.Main()
 }
